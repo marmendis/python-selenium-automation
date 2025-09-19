@@ -1,45 +1,55 @@
+import elements
 from behave import given, when, then
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.common import NoSuchElementException
+from selenium.webdriver.common.by import By
 import time
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
+
 
 @given("I open the Target homepage")
-def step_open_homepage(context):
+def homepage(context):
     context.driver = webdriver.Chrome()
     context.driver.maximize_window()
     context.driver.get("https://www.target.com")
     time.sleep(3)
 
 @when('I search for "{product}"')
-def step_search_product(context, product):
+def product(context, product):
     search_box = context.driver.find_element(By.ID, "search")
     search_box.send_keys(product)
     search_box.submit()
     time.sleep(3)
 
 @when("I add the first product to the cart")
-def step_add_first_product(context):
+def product(context):
     driver = context.driver
-        # Click the first product link
-        first_product = driver.find_element(By.CSS_SELECTOR, 'a[data-test="product-title"]')
-        first_product.click()
-        time.sleep(3)
+add_buttons = context.driver.find_element(By.CSS_SELECTOR, "button[data-test='chooseOptionsButton']")
 
-        # Find all possible add-to-cart buttons
-        add_buttons = driver.find_elements(By.CSS_SELECTOR,
-                                           'button[data-test="add-to-cart-button"], button[data-test="orderPickupButton"]')
+# Scroll into view in case it's offscreen
+driver.execute_script("arguments[0].scrollIntoView(true);", add_button)
 
-        # Click the first button
-        if add_buttons:
-            add_buttons[0].click()
-            print("Clicked the first Add to Cart button")
-        else:
-            print("No add-to-cart buttons found!")
+# Click the button
+add_button.click()
 
-time.sleep(3)
+@When("choose option")
+def options(context):
+    # click "Choose Options" if it exists
+    try:
+        choose_button = driver.find_element(By.CSS_SELECTOR, "[data-test='chooseOptionsButton']")
+        choose_button.click()
+        time.sleep(2)
+    except:
+        pass
+
+    # click "Add to Cart" button
+    add_button = driver.find_element(By.CSS_SELECTOR,
+                                     "[data-test='orderPickupButton'], [data-test='orderShippingButton']")
+    add_button.click()
+    time.sleep(3)
+
+
 
 
 @then("I should see at least one item in the cart")
